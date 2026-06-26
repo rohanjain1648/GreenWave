@@ -1,0 +1,11 @@
+# Local one-command run of the GreenWave backend.
+# The frontend runs separately with `npm run dev` (see README) or deploys to Vercel.
+services:
+  api:
+    build:
+      context: ../apps/api
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    restart: unless-stopped

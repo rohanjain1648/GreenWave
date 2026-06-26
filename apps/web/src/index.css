@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #0a0f14;
+  color: #e6edf3;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer utilities {
+  .glow {
+    box-shadow: 0 0 24px -6px rgba(34, 229, 132, 0.55);
+  }
+  .text-glow {
+    text-shadow: 0 0 14px rgba(34, 229, 132, 0.55);
+  }
+}
