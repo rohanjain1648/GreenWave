@@ -1,6 +1,11 @@
 """GreenWave API — FastAPI app exposing the network, live frame stream, and controls."""
 from __future__ import annotations
 
+import json
+import os
+import time
+
+import httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -17,6 +22,15 @@ app.add_middleware(
 )
 
 manager = SimManager()
+
+# ── Grok / xAI config ────────────────────────────────────────────────────────
+_GROK_URL   = "https://api.x.ai/v1/chat/completions"
+_GROK_MODEL = os.getenv("GROK_MODEL", "grok-3-latest")
+_GROK_KEY   = os.getenv("GROK_API_KEY", "")
+
+# Server-side cache: don't hit Grok more than once every 12 seconds
+_insights_cache: dict = {}
+_insights_at: float   = 0.0
 
 
 @app.on_event("startup")
@@ -38,6 +52,142 @@ async def network() -> dict:
 async def state() -> dict:
     return manager.snapshot()
 
+
+# ── AI Infrastructure Insights (Grok) ────────────────────────────────────────
+
+def _build_prompt(snap: dict) -> str:
+    fk = snap["twins"]["fixed"]["kpis"]
+    ak = snap["twins"]["ai"]["kpis"]
+    sv = snap["savings"]
+
+    clock = snap.get("simClock", 420)
+    city_time = f"{int(clock // 60):02d}:{int(clock % 60):02d}"
+    weather   = snap.get("weather", "clear")
+    blocked   = len(snap.get("blocked", []))
+    demand    = snap.get("demand", 1.0)
+    auto_dn   = snap.get("dayNightAuto", False)
+
+    emg_fixed = fk.get("emergencyResponseS")
+    emg_ai    = ak.get("emergencyResponseS")
+    emg_line  = (
+        f"Last ambulance — Fixed: {emg_fixed}s / {fk.get('emergencyStops')} stops | "
+        f"AI: {emg_ai}s / {ak.get('emergencyStops')} stops"
+        if emg_fixed or emg_ai
+        else "No emergency dispatched yet"
+    )
+
+    return f"""You are GreenWave AI, an expert urban traffic-infrastructure analyst.
+Analyse the live simulation data below and produce 4 specific, quantitative,
+actionable recommendations that a city planner could implement. Reference actual
+numbers from the data. Return ONLY valid JSON — no markdown, no prose outside it.
+
+=== SIMULATION SNAPSHOT ===
+Network : 6×8 grid · 48 intersections · 120 m block spacing · bidirectional roads
+Elapsed : {snap['simTime']:.0f} s sim-time | City clock: {city_time} | Weather: {weather}
+Demand  : {demand:.1f}× baseline | Day/night auto-curve: {auto_dn}
+Blocked edges (disruptions): {blocked}
+
+FIXED TIMING (status-quo baseline — 22 s fixed cycles):
+  Trips completed  : {fk['completed']}   Active: {fk['active']}
+  Avg trip time    : {fk['avgTravelTimeS']} s
+  Total wait time  : {fk['totalWaitS']:.0f} s
+  Throughput       : {fk['throughputPerMin']} trips/min
+  Mean queue       : {fk['meanQueue']} veh/edge
+  CO₂ emitted      : {fk['co2Kg']} kg   Fuel: {fk['fuelL']} L
+
+MAX-PRESSURE AI (GreenWave — adaptive, queue-responsive):
+  Trips completed  : {ak['completed']}   Active: {ak['active']}
+  Avg trip time    : {ak['avgTravelTimeS']} s
+  Total wait time  : {ak['totalWaitS']:.0f} s
+  Throughput       : {ak['throughputPerMin']} trips/min
+  Mean queue       : {ak['meanQueue']} veh/edge
+  CO₂ emitted      : {ak['co2Kg']} kg   Fuel: {ak['fuelL']} L
+
+SAVINGS (AI vs fixed):
+  Travel time : {sv['travelTimePct']}% faster
+  Wait time   : {sv['waitPct']}% less idle
+  CO₂         : {sv['co2Pct']}% reduction · {sv['co2KgSaved']} kg saved
+  Queue       : {sv['queuePct']}% shorter
+
+EMERGENCY RESPONSE:
+  {emg_line}
+
+=== TASK ===
+Return exactly this JSON (4 recommendations, each icon is a single emoji):
+{{
+  "summary": "One sentence overall assessment of city performance and biggest opportunity.",
+  "recommendations": [
+    {{
+      "icon": "🚦",
+      "title": "Short action title (5–8 words)",
+      "detail": "Specific finding with numbers and clear reasoning. Two to three sentences.",
+      "impact": "Estimated improvement e.g. ~18% queue reduction"
+    }}
+  ]
+}}"""
+
+
+@app.get("/api/insights")
+async def insights() -> dict:
+    global _insights_cache, _insights_at
+
+    if not _GROK_KEY:
+        return {"ok": False, "error": "GROK_API_KEY not set on the server."}
+
+    now = time.monotonic()
+    if _insights_cache and (now - _insights_at) < 12:
+        return {"ok": True, "cached": True, **_insights_cache}
+
+    snap   = manager.snapshot()
+    prompt = _build_prompt(snap)
+
+    try:
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            resp = await client.post(
+                _GROK_URL,
+                headers={
+                    "Authorization": f"Bearer {_GROK_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": _GROK_MODEL,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are GreenWave AI, an expert urban traffic analyst. "
+                                "Always return valid JSON only — never wrap in markdown."
+                            ),
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    "max_tokens": 700,
+                    "temperature": 0.35,
+                },
+            )
+        resp.raise_for_status()
+
+        raw = resp.json()["choices"][0]["message"]["content"].strip()
+
+        # Strip accidental ```json ... ``` wrapping
+        if raw.startswith("```"):
+            parts = raw.split("```")
+            raw = parts[1].lstrip("json").strip() if len(parts) > 1 else raw
+
+        parsed = json.loads(raw)
+        _insights_cache = parsed
+        _insights_at    = now
+        return {"ok": True, "cached": False, **parsed}
+
+    except json.JSONDecodeError as exc:
+        return {"ok": False, "error": f"Grok returned non-JSON: {exc}"}
+    except httpx.HTTPStatusError as exc:
+        return {"ok": False, "error": f"Grok API error {exc.response.status_code}: {exc.response.text[:200]}"}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+# ── Actions ───────────────────────────────────────────────────────────────────
 
 class Action(BaseModel):
     type: str
@@ -84,12 +234,13 @@ async def action(a: Action) -> dict:
     return {"ok": True}
 
 
+# ── WebSocket ─────────────────────────────────────────────────────────────────
+
 @app.websocket("/ws")
 async def ws(websocket: WebSocket) -> None:
     await websocket.accept()
     q = manager.subscribe()
     try:
-        # send an immediate snapshot so the client renders instantly
         await websocket.send_json(manager.snapshot())
         while True:
             data = await q.get()
@@ -104,5 +255,4 @@ async def ws(websocket: WebSocket) -> None:
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)

@@ -6,6 +6,7 @@ import CityScene from "./scene/CityScene";
 import ControlPanel from "./components/ControlPanel";
 import KpiDashboard from "./components/KpiDashboard";
 import TourCaption from "./components/TourCaption";
+import InsightsPanel from "./components/InsightsPanel";
 
 export default function App() {
   const setNetwork = useStore((s) => s.setNetwork);
@@ -64,6 +65,7 @@ export default function App() {
         {/* right rail */}
         <aside className="flex flex-col gap-4">
           <KpiDashboard />
+          <InsightsPanel />
           <div className="rounded-xl border border-ink-700 bg-ink-900 p-3 text-[11px] leading-relaxed text-slate-500">
             <span className="text-slate-400">How to read this:</span> both cities get the
             exact same cars. The left runs on fixed timers (like most real cities); the
