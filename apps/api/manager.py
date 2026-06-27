@@ -130,6 +130,12 @@ class SimManager:
 
     def reset(self) -> None:
         self._build()
+        self.running = False
+        self.demand_multiplier = 1.0
+        self.weather = "clear"
+        self.weather_demand_factor = 1.0
+        self.day_night_auto = False
+        self.speed = 1
 
     def set_speed(self, speed: int) -> None:
         self.speed = max(1, min(6, int(speed)))

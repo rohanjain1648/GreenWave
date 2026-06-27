@@ -4,16 +4,23 @@ import { useStore } from "../store";
 import { startDemoTour, stopDemoTour } from "../tour";
 import type { WeatherMode } from "../types";
 
-async function fetchLiveWeather() {
+async function fetchLiveWeather(
+  setStatus: (s: string | null) => void
+) {
+  setStatus("fetching…");
   try {
     const r = await fetch("https://wttr.in/?format=j1");
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const d = await r.json();
     const code = parseInt(d.current_condition[0].weatherCode, 10);
-    // 113=Clear/Sunny, ≤116=partly cloudy, 200-399=rain, 395+=heavy/blizzard
     const mode = code <= 116 ? 0 : code < 302 ? 1 : 2;
+    const label = mode === 0 ? "clear ☀️" : mode === 1 ? "rain 🌧️" : "heavy ⛈️";
     sendAction("weather", mode);
-  } catch {
-    // silently ignore — offline or blocked
+    setStatus(`Applied: ${label}`);
+    setTimeout(() => setStatus(null), 3000);
+  } catch (e) {
+    setStatus("Failed (CORS or offline)");
+    setTimeout(() => setStatus(null), 3000);
   }
 }
 
@@ -69,6 +76,7 @@ export default function ControlPanel() {
   const showHeatmap = useStore((s) => s.showHeatmap);
   const toggleHeatmap = useStore((s) => s.toggleHeatmap);
   const [speed, setSpeed] = useState(1);
+  const [liveStatus, setLiveStatus] = useState<string | null>(null);
 
   const weather = cur?.weather ?? "clear";
   const simClock = cur?.simClock ?? 420;
@@ -158,11 +166,11 @@ export default function ControlPanel() {
             </button>
           ))}
           <button
-            onClick={fetchLiveWeather}
+            onClick={() => fetchLiveWeather(setLiveStatus)}
             title="Fetch real weather from your location and apply it"
             className="rounded-lg border border-ink-600 bg-ink-700 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-ink-600 active:scale-95"
           >
-            🌐 Live
+            🌐 {liveStatus ?? "Live"}
           </button>
           <button
             onClick={() => sendAction("day_night")}
