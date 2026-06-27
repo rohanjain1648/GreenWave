@@ -37,7 +37,7 @@ export default function InsightsPanel() {
       setData(result);
       setFetchedAt(Date.now());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to reach Grok");
+      setError(e instanceof Error ? e.message : "Failed to reach Groq");
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export default function InsightsPanel() {
           </h2>
           <p className="text-[11px] text-slate-500">
             Powered by{" "}
-            <span className="text-slate-400">Grok (xAI)</span>
+            <span className="text-slate-400">Groq</span>
             {data?.cached && (
               <span className="ml-1 text-slate-600">· cached</span>
             )}
@@ -90,7 +90,7 @@ export default function InsightsPanel() {
           <span className="text-2xl">🏙️</span>
           <p className="text-[12px] leading-relaxed text-slate-400">
             Click <strong className="text-slate-300">Analyze city</strong> to get
-            Grok's AI-powered recommendations for improving urban infrastructure
+            Groq's AI-powered recommendations for improving urban infrastructure
             based on live simulation data.
           </p>
         </div>
@@ -119,9 +119,9 @@ export default function InsightsPanel() {
       {error && !loading && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-[12px] text-red-300">
           <span className="font-medium">Error: </span>{error}
-          {error.includes("GROK_API_KEY") && (
+          {error.includes("GROQ_API_KEY") && (
             <p className="mt-1 text-red-400/80">
-              Set <code className="text-red-300">GROK_API_KEY</code> in{" "}
+              Set <code className="text-red-300">GROQ_API_KEY</code> in{" "}
               <code className="text-red-300">apps/api/.env</code> and restart the server.
             </p>
           )}
@@ -166,7 +166,7 @@ export default function InsightsPanel() {
           </div>
 
           <p className="text-[10px] text-slate-600">
-            Recommendations are generated from live KPI data by Grok (xAI) and
+            Recommendations are generated from live KPI data by Groq and
             reflect the current simulation state.
           </p>
         </div>

@@ -6,11 +6,14 @@ import os
 import time
 
 import httpx
+from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from manager import SimManager
+
+load_dotenv()
 
 app = FastAPI(title="GreenWave API", version="1.0")
 
@@ -23,10 +26,10 @@ app.add_middleware(
 
 manager = SimManager()
 
-# ── Grok / xAI config ────────────────────────────────────────────────────────
-_GROK_URL   = "https://api.x.ai/v1/chat/completions"
-_GROK_MODEL = os.getenv("GROK_MODEL", "grok-3-latest")
-_GROK_KEY   = os.getenv("GROK_API_KEY", "")
+# ── Groq config ──────────────────────────────────────────────────────────────
+_GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions"
+_GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+_GROQ_KEY   = os.getenv("GROQ_API_KEY", "")
 
 # Server-side cache: don't hit Grok more than once every 12 seconds
 _insights_cache: dict = {}
@@ -53,7 +56,7 @@ async def state() -> dict:
     return manager.snapshot()
 
 
-# ── AI Infrastructure Insights (Grok) ────────────────────────────────────────
+# ── AI Infrastructure Insights (Groq) ────────────────────────────────────────
 
 def _build_prompt(snap: dict) -> str:
     fk = snap["twins"]["fixed"]["kpis"]
@@ -131,8 +134,8 @@ Return exactly this JSON (4 recommendations, each icon is a single emoji):
 async def insights() -> dict:
     global _insights_cache, _insights_at
 
-    if not _GROK_KEY:
-        return {"ok": False, "error": "GROK_API_KEY not set on the server."}
+    if not _GROQ_KEY:
+        return {"ok": False, "error": "GROQ_API_KEY not set on the server."}
 
     now = time.monotonic()
     if _insights_cache and (now - _insights_at) < 12:
@@ -144,13 +147,13 @@ async def insights() -> dict:
     try:
         async with httpx.AsyncClient(timeout=25.0) as client:
             resp = await client.post(
-                _GROK_URL,
+                _GROQ_URL,
                 headers={
-                    "Authorization": f"Bearer {_GROK_KEY}",
+                    "Authorization": f"Bearer {_GROQ_KEY}",
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": _GROK_MODEL,
+                    "model": _GROQ_MODEL,
                     "messages": [
                         {
                             "role": "system",
@@ -180,9 +183,9 @@ async def insights() -> dict:
         return {"ok": True, "cached": False, **parsed}
 
     except json.JSONDecodeError as exc:
-        return {"ok": False, "error": f"Grok returned non-JSON: {exc}"}
+        return {"ok": False, "error": f"Groq returned non-JSON: {exc}"}
     except httpx.HTTPStatusError as exc:
-        return {"ok": False, "error": f"Grok API error {exc.response.status_code}: {exc.response.text[:200]}"}
+        return {"ok": False, "error": f"Groq API error {exc.response.status_code}: {exc.response.text[:200]}"}
     except Exception as exc:
         return {"ok": False, "error": str(exc)}
 

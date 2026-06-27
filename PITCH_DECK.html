@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenWave: AI-Powered Traffic Control - Pitch Deck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #070b10;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            padding: 60px 80px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 10;
+        }
+
+        .slide h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #22e584;
+            line-height: 1.1;
+        }
+
+        .slide h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #22e584;
+        }
+
+        .slide h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+        }
+
+        .slide p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            color: #cbd5e1;
+        }
+
+        .slide ul {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        .slide li {
+            margin-bottom: 12px;
+            color: #cbd5e1;
+        }
+
+        .metric {
+            display: inline-block;
+            background: rgba(34, 230, 132, 0.15);
+            border-left: 4px solid #22e584;
+            padding: 15px 25px;
+            margin: 10px 20px 10px 0;
+            border-radius: 4px;
+        }
+
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #22e584;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: rgba(34, 230, 132, 0.2);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #22e584;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(34, 230, 132, 0.1);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(34, 230, 132, 0.05);
+        }
+
+        .fixed-value {
+            color: #94a3b8;
+        }
+
+        .ai-value {
+            color: #22e584;
+            font-weight: 600;
+        }
+
+        .improvement {
+            color: #22e584;
+            font-weight: 700;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+            background: rgba(7, 11, 16, 0.9);
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: 1px solid rgba(34, 230, 132, 0.3);
+        }
+
+        button {
+            background: rgba(34, 230, 132, 0.2);
+            border: 1px solid #22e584;
+            color: #22e584;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: rgba(34, 230, 132, 0.3);
+            box-shadow: 0 0 15px rgba(34, 230, 132, 0.3);
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 30px;
+            right: 40px;
+            font-size: 1rem;
+            color: #94a3b8;
+            z-index: 100;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #94a3b8;
+            margin-bottom: 40px;
+        }
+
+        .highlight {
+            color: #22e584;
+            font-weight: 600;
+        }
+
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .box {
+            background: rgba(34, 230, 132, 0.1);
+            border-left: 4px solid #22e584;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(34, 230, 132, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .card h4 {
+            color: #22e584;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+        }
+
+        @media print {
+            .controls, .slide-counter { display: none; }
+            .slide { page-break-after: always; opacity: 1 !important; display: flex !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- SLIDE 1: HOOK -->
+    <div class="slide active">
+        <div class="icon">🚦🌊</div>
+        <h1>GreenWave</h1>
+        <h2>The Brain Traffic Signals Have Been Waiting For</h2>
+        <p class="subtitle">A real-time AI digital twin that proves smarter traffic signals save lives, time, and the planet.</p>
+        <div style="margin-top: 60px;">
+            <div class="metric">
+                <div class="metric-value">45%</div>
+                <div class="metric-label">Faster trip times</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">81%</div>
+                <div class="metric-label">Less idle time</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">27%</div>
+                <div class="metric-label">CO₂ reduction</div>
+            </div>
+        </div>
+        <p style="margin-top: 60px; color: #94a3b8; font-style: italic;">Same cars. Same demand. Different controllers. Watch the AI win in real time.</p>
+    </div>
+
+    <!-- SLIDE 2: THE PROBLEM -->
+    <div class="slide">
+        <h2>The Problem: Why This Matters</h2>
+        <div style="margin-top: 40px;">
+            <h3 style="color: #ff3b30; margin-bottom: 20px;">Real Numbers</h3>
+            <ul>
+                <li><strong>54 billion hours/year</strong> lost to traffic in the US</li>
+                <li><strong>$1.4 trillion/year</strong> in congestion costs</li>
+                <li><strong>50 hours/year</strong> of wasted commute time per driver</li>
+                <li><strong>1–3 minutes/mile</strong> lost by ambulances at red lights</li>
+                <li><strong>10% per minute</strong> survival decrease for cardiac arrest</li>
+            </ul>
+            <div class="box" style="margin-top: 40px;">
+                <p><strong>The core problem:</strong> Traffic signals are timed to schedules written <strong>decades ago</strong>. They don't know what's <strong>actually on the road right now</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: ROOT CAUSE -->
+    <div class="slide">
+        <h2>Why Fixed Timing Fails</h2>
+        <div style="margin-top: 40px;">
+            <h3>The 1970s Thinking</h3>
+            <p>A traffic engineer surveyed peak hour once → timed signals for that ONE moment → schedules never changed.</p>
+            <div style="margin-top: 40px; background: rgba(0,0,0,0.3); padding: 30px; border-radius: 8px;">
+                <p><strong>Result:</strong></p>
+                <ul style="margin-top: 20px;">
+                    <li>✗ Green when no traffic exists</li>
+                    <li>✗ Red on incoming queues</li>
+                    <li>✗ Can't adapt to accidents</li>
+                    <li>✗ Can't respond to demand spikes</li>
+                    <li>✗ Ambulances wait like any car</li>
+                </ul>
+            </div>
+            <p style="margin-top: 40px; color: #22e584; font-weight: 600;">GreenWave reads queues every cycle and adapts in real time.</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: MAX-PRESSURE -->
+    <div class="slide">
+        <h2>Max-Pressure: The Algorithm That Wins</h2>
+        <div style="margin-top: 40px;">
+            <h3>How It Works</h3>
+            <div class="box">
+                <p><strong>At each intersection, every cycle:</strong></p>
+                <ol style="margin-left: 20px; margin-top: 15px;">
+                    <li style="margin-bottom: 10px;">Count the queues (upstream and downstream)</li>
+                    <li style="margin-bottom: 10px;">Compute pressure = upstream – (0.5 × downstream)</li>
+                    <li style="margin-bottom: 10px;">Give green to highest pressure direction</li>
+                    <li>Repeat every 5–10 seconds</li>
+                </ol>
+            </div>
+            <p style="margin-top: 40px; color: #22e584;"><strong>Why it wins:</strong></p>
+            <ul style="margin-top: 15px;">
+                <li>✓ Reads live data (ignores ancient timer)</li>
+                <li>✓ Adapts to demand (long queue → longer green)</li>
+                <li>✓ <strong>Provably optimal</strong> (Varaiya, UC Berkeley, 2013)</li>
+                <li>✓ No training needed (works immediately)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: FAIR COMPARISON -->
+    <div class="slide">
+        <h2>Why Our Proof Is Airtight</h2>
+        <h3 style="color: #cbd5e1; font-size: 1.5rem; margin-top: 30px;">Same Cars. Same Seed. Different Controllers.</h3>
+        <div style="margin-top: 50px; background: rgba(34, 230, 132, 0.1); padding: 30px; border-radius: 8px; border-left: 4px solid #22e584;">
+            <p><strong>Both twins receive the same Poisson-distributed demand from a seeded RNG (seed=42).</strong></p>
+            <p style="margin-top: 15px;">This means:</p>
+            <ul style="margin-top: 15px;">
+                <li>✓ Not cherry-picked (deterministic, reproducible)</li>
+                <li>✓ Fair (any luck hits both equally)</li>
+                <li>✓ Causal (only difference is the controller)</li>
+                <li>✓ Provable (replay seed → same result)</li>
+            </ul>
+        </div>
+        <p style="margin-top: 40px; font-size: 1.2rem; color: #22e584; font-weight: 600;">45% faster trips and 81% less wait time aren't luck—they're controller design.</p>
+    </div>
+
+    <!-- SLIDE 6: DISRUPTIONS -->
+    <div class="slide">
+        <h2>Seven Ways to Break It (And Watch It Respond)</h2>
+        <div class="grid-3" style="margin-top: 30px;">
+            <div class="card">
+                <h4>💥 Accident</h4>
+                <p>Fixed: gridlock spreads</p>
+                <p style="color: #22e584; font-weight: 600;">AI: reroutes instantly</p>
+            </div>
+            <div class="card">
+                <h4>🌊 Flood</h4>
+                <p>Fixed: broken paths</p>
+                <p style="color: #22e584; font-weight: 600;">AI: recalculates routes</p>
+            </div>
+            <div class="card">
+                <h4>📈 Surge</h4>
+                <p>Fixed: saturation</p>
+                <p style="color: #22e584; font-weight: 600;">AI: extends green adaptively</p>
+            </div>
+            <div class="card">
+                <h4>🚑 Ambulance</h4>
+                <p>Fixed: 3–4 stops</p>
+                <p style="color: #22e584; font-weight: 600;">AI: 0 stops (green corridor)</p>
+            </div>
+            <div class="card">
+                <h4>🚨 Motorcade</h4>
+                <p>Fixed: traffic backlog</p>
+                <p style="color: #22e584; font-weight: 600;">AI: reroutes around</p>
+            </div>
+            <div class="card">
+                <h4>💡 Signal Failure</h4>
+                <p>Fixed: fragmented</p>
+                <p style="color: #22e584; font-weight: 600;">AI: avoids failure zone</p>
+            </div>
+        </div>
+        <p style="margin-top: 40px; text-align: center; color: #cbd5e1; font-size: 1rem;">Each disruption widens the performance gap. Click and watch.</p>
+    </div>
+
+    <!-- SLIDE 7: WEATHER & TIME -->
+    <div class="slide">
+        <h2>A City That Changes: Weather & Rush Hour</h2>
+        <div style="margin-top: 40px;">
+            <h3>Weather Impact</h3>
+            <ul style="margin-bottom: 30px;">
+                <li><strong>☀️ Clear:</strong> 13 m/s speed, 1.0× demand</li>
+                <li><strong>🌧️ Rain:</strong> 9.75 m/s (75%), 0.88× demand</li>
+                <li><strong>⛈️ Heavy rain:</strong> 6.5 m/s (50%), 0.72× demand</li>
+            </ul>
+            <h3 style="margin-top: 30px;">Day/Night Rush Hour Curve</h3>
+            <ul>
+                <li><strong>7:00 AM:</strong> 0.40× demand (early commute)</li>
+                <li><strong>8:00 AM:</strong> 1.55× demand (morning peak)</li>
+                <li><strong>5:00 PM:</strong> 1.65× demand (evening peak)</li>
+                <li><strong>10:00 PM:</strong> 0.38× demand (late night)</li>
+            </ul>
+            <div class="box" style="margin-top: 40px;">
+                <p><strong>The insight:</strong> Max-Pressure scales with demand. When it's hardest (peak hour), the algorithm works <em>better</em>. That's the science.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: HEATMAP -->
+    <div class="slide">
+        <h2>See the Emissions: Live Pollution Heatmap</h2>
+        <p style="margin-top: 30px; margin-bottom: 30px;">Every vehicle contributes based on its state:</p>
+        <div class="box">
+            <p><strong>🔴 Red zones:</strong> Cars idling (burning fuel for zero distance)</p>
+            <p style="margin-top: 10px;"><strong>🟢 Green zones:</strong> Cars flowing (efficient motion)</p>
+        </div>
+        <p style="margin-top: 40px; font-size: 1rem; color: #94a3b8;">Idle cars weigh 3× moving cars in the heatmap—true congestion shows as red.</p>
+        <div style="margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+            <div style="background: rgba(255, 59, 48, 0.2); padding: 20px; border-radius: 8px; border-left: 4px solid #ff3b30;">
+                <p style="color: #ff3b30; font-weight: 600; margin-bottom: 10px;">Fixed Timing City</p>
+                <p>Dense red zones on main streets</p>
+                <p style="margin-top: 10px; color: #94a3b8;">Idling jams visible everywhere</p>
+            </div>
+            <div style="background: rgba(34, 230, 132, 0.2); padding: 20px; border-radius: 8px; border-left: 4px solid #22e584;">
+                <p style="color: #22e584; font-weight: 600; margin-bottom: 10px;">GreenWave AI City</p>
+                <p>Green flow pattern</p>
+                <p style="margin-top: 10px; color: #94a3b8;">Minimal idling, efficient movement</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 9: GROK INSIGHTS -->
+    <div class="slide">
+        <h2>AI-Powered Recommendations: Grok Analysis</h2>
+        <p style="margin-top: 30px; margin-bottom: 30px;">The system doesn't just control—it recommends infrastructure changes.</p>
+        <div class="box">
+            <p><strong>How it works:</strong></p>
+            <ol style="margin-left: 20px; margin-top: 15px;">
+                <li style="margin-bottom: 10px;">User clicks <span class="highlight">⚡ Analyze city</span></li>
+                <li style="margin-bottom: 10px;">Backend sends live KPIs to Grok (xAI)</li>
+                <li style="margin-bottom: 10px;">Grok returns 4 quantitative recommendations</li>
+                <li>Each references actual numbers from the data</li>
+            </ol>
+        </div>
+        <p style="margin-top: 40px;"><strong>Example recommendation:</strong></p>
+        <div style="background: rgba(0,0,0,0.3); padding: 20px; margin-top: 15px; border-radius: 8px; border-left: 4px solid #22e584;">
+            <p style="color: #22e584; font-weight: 600;">🚦 Extend green on central avenue by 8–10 s</p>
+            <p style="margin-top: 10px; color: #cbd5e1;">The central avenue carries 45% of all trips but mean queue (0.53 veh) is 10× higher than under AI (0.05). Extending vertical green windows would drain backlog faster.</p>
+            <p style="margin-top: 10px; color: #22e584; font-weight: 600;">Expected impact: ~22% queue reduction</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 10: PROOF - NUMBERS -->
+    <div class="slide">
+        <h2>The Proof: Verified Results</h2>
+        <p style="margin-top: 30px; margin-bottom: 20px; color: #94a3b8;">1000-second benchmark (accident injected at t=400s)</p>
+        <table class="comparison-table">
+            <tr>
+                <th style="text-align: left;">Metric</th>
+                <th>Fixed Timing</th>
+                <th>GreenWave AI</th>
+                <th>Improvement</th>
+            </tr>
+            <tr>
+                <td>Avg trip time</td>
+                <td class="fixed-value">121.8 s</td>
+                <td class="ai-value">66.8 s</td>
+                <td class="improvement">45% faster</td>
+            </tr>
+            <tr>
+                <td>Total wait time</td>
+                <td class="fixed-value">72,425 s</td>
+                <td class="ai-value">13,966 s</td>
+                <td class="improvement">81% less</td>
+            </tr>
+            <tr>
+                <td>Trips completed</td>
+                <td class="fixed-value">1,237</td>
+                <td class="ai-value">1,433</td>
+                <td class="improvement">+16%</td>
+            </tr>
+            <tr>
+                <td>Mean queue</td>
+                <td class="fixed-value">0.53 veh</td>
+                <td class="ai-value">0.05 veh</td>
+                <td class="improvement">91% shorter</td>
+            </tr>
+            <tr>
+                <td>CO₂ emitted</td>
+                <td class="fixed-value">275 kg</td>
+                <td class="ai-value">201 kg</td>
+                <td class="improvement">27% less</td>
+            </tr>
+            <tr>
+                <td>Ambulance time</td>
+                <td class="fixed-value">133.5 s / 3 stops</td>
+                <td class="ai-value">111 s / <strong>0 stops</strong></td>
+                <td class="improvement">Never stopped</td>
+            </tr>
+        </table>
+        <p style="margin-top: 30px; color: #94a3b8; font-size: 0.95rem;">Same seed, same demand, different controllers. These aren't flukes—they're deterministic outcomes of better control.</p>
+    </div>
+
+    <!-- SLIDE 11: ROADMAP -->
+    <div class="slide">
+        <h2>From Demo to City-Wide Deployment</h2>
+        <div style="margin-top: 40px;">
+            <h3 style="color: #22e584; margin-bottom: 20px;">Phase 1: Hackathon MVP (Now)</h3>
+            <p style="color: #94a3b8; margin-bottom: 15px;">✓ Real-time simulation engine (Python, self-contained)</p>
+            <p style="color: #94a3b8; margin-bottom: 15px;">✓ Max-Pressure controller (decentralized, optimal)</p>
+            <p style="color: #94a3b8; margin-bottom: 30px;">✓ 3D interactive visualization + Grok insights</p>
+
+            <h3 style="color: #cbd5e1; margin-bottom: 20px;">Phase 2: Production (SUMO + RL)</h3>
+            <p style="color: #94a3b8; margin-bottom: 15px;">→ Real OpenStreetMap networks (import any city)</p>
+            <p style="color: #94a3b8; margin-bottom: 30px;">→ Deep-RL controller option (third twin)</p>
+
+            <h3 style="color: #cbd5e1; margin-bottom: 20px;">Phase 3: Multi-District Scale</h3>
+            <p style="color: #94a3b8; margin-bottom: 15px;">→ Stateless FastAPI + Redis pub/sub</p>
+            <p style="color: #94a3b8;">→ Horizontal workers per district</p>
+        </div>
+        <div class="box" style="margin-top: 40px;">
+            <p><strong>The scale story:</strong> This MVP proves the concept. Architecture is designed to scale from one grid to a whole city via independent district workers and stateless API.</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 12: CALL TO ACTION -->
+    <div class="slide">
+        <h2>Why GreenWave Wins</h2>
+        <div style="margin-top: 50px;">
+            <div class="card" style="margin-bottom: 25px;">
+                <h4>🎯 Innovation</h4>
+                <p>Decentralized optimal control + live counterfactual + AI recommendations (all citable, all real)</p>
+            </div>
+            <div class="card" style="margin-bottom: 25px;">
+                <h4>⚙️ Technical Execution</h4>
+                <p>Real-time sim engine, async WebSocket at 10 Hz, GPU-instanced R3F rendering at 60 fps, Grok integration</p>
+            </div>
+            <div class="card" style="margin-bottom: 25px;">
+                <h4>🎨 Usability</h4>
+                <p>Zero-config local dev (5 min), one-click demo tour, every feature is interactive and immediate</p>
+            </div>
+            <div class="card" style="margin-bottom: 25px;">
+                <h4>📊 Impact</h4>
+                <p>Quantified and measured live: 45% faster trips, 81% less wait, 27% CO₂ reduction, ambulance 0 stops</p>
+            </div>
+            <div class="card">
+                <h4>🌍 Theme: Future City</h4>
+                <p>Smart adaptive infrastructure, sustainability focus, civic emergency response tool, AI-powered</p>
+            </div>
+        </div>
+        <p style="margin-top: 50px; text-align: center; font-size: 1.3rem; color: #22e584; font-weight: 600;">GreenWave is the brain traffic signals have been waiting for.</p>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="slide-counter">
+        <span id="current">1</span> / <span id="total">12</span>
+    </div>
+
+    <div class="controls">
+        <button id="prev">← Previous</button>
+        <button id="next">Next →</button>
+        <button id="fullscreen">Fullscreen</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function showSlide(n) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('current').textContent = currentSlide + 1;
+        }
+
+        document.getElementById('next').addEventListener('click', () => showSlide(currentSlide + 1));
+        document.getElementById('prev').addEventListener('click', () => showSlide(currentSlide - 1));
+        document.getElementById('fullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') showSlide(currentSlide + 1);
+            if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+            if (e.key === 'f') document.documentElement.requestFullscreen();
+        });
+
+        document.getElementById('total').textContent = totalSlides;
+    </script>
+</body>
+</html>

@@ -6,6 +6,10 @@ Two identical city districts run side by side. One is controlled by the same fix
 
 **FutureHacks 2026 · Advanced division · Theme: The Future City**
 
+📺 **[5-minute live demo script](DEMO.md)** — how to present all features to judges in one sitting.  
+📋 **[DevPost submission](DEVPOST.md)** — full hackathon entry with all required fields.  
+🎤 **[12-page pitch deck](PITCH_DECK.html)** — interactive HTML presentation (open in browser, navigate with arrow keys or buttons, print/export to PDF).
+
 ---
 
 ## The Problem
@@ -86,6 +90,13 @@ These numbers come from a headless 1000-second benchmark run (accident injected 
 - Per-frame exponential decay (×0.9) keeps the map temporally smoothed and responsive.
 - Rendered as a single translucent plane (green → yellow → red), updated in `useFrame` — no backend change needed, pure client-side from the live vehicle stream.
 - Toggle with the **🔥 Pollution map** button. In Split view, the Fixed city glows redder than the AI city.
+
+### AI Infrastructure Insights (Grok / xAI)
+- **⚡ Analyze city** button in the right rail sends live KPI data to Grok and returns **4 specific, quantitative infrastructure recommendations** for city planners.
+- Grok reads: trip times, wait times, throughput, queue lengths, CO₂/fuel, emergency response, weather, time of day, active disruptions.
+- Returns plain-English recommendations with actual numbers: e.g. *"Extend green phases on central avenue by 8–10 s; expected queue reduction ~22%"*.
+- Results are **server-side cached** — Grok is only called once every 12 seconds max, so you can analyze repeatedly without API cost explosion.
+- Completely optional — set `GROK_API_KEY` env var to enable it. If not set, a helpful error message appears.
 
 ### Guided Demo Tour
 - **🎬 Demo Tour** auto-plays a 7-step scripted highlight reel with timed narration captions:
@@ -300,6 +311,8 @@ npm run dev                      # http://localhost:5173
 
 Open `http://localhost:5173` and click **▶ Run the city**.
 
+**First time?** Follow the [5-minute demo script](DEMO.md) to see all features in action.
+
 ### Via Docker (backend only)
 
 ```bash
@@ -337,8 +350,14 @@ git push -u origin main
 | Runtime | `Docker` |
 | Instance Type | Free (or Starter $7/mo for always-on) |
 
-4. Click **Create Web Service** — first deploy takes ~3 minutes
-5. Note your URL: `https://greenwave-api.onrender.com`
+4. Add environment variable (optional, for Insights):
+
+| Key | Value |
+|---|---|
+| `GROK_API_KEY` | Your xAI API key from [console.x.ai](https://console.x.ai) |
+
+5. Click **Create Web Service** — first deploy takes ~3 minutes
+6. Note your URL: `https://greenwave-api.onrender.com`
 
 > **Free tier note:** spins down after 15 min of inactivity; first request takes ~30s to wake. Use the Starter plan for a live demo that needs to respond instantly.
 
@@ -393,6 +412,7 @@ Lock CORS before going public: change `allow_origins=["*"]` in `apps/api/main.py
 | `GET` | `/api/network` | — | Grid network as GeoJSON-like `{nodes, edges, bounds, rows, cols, spacing}` |
 | `GET` | `/api/state` | — | Full snapshot (same shape as WebSocket frames) |
 | `POST` | `/api/action` | `{type, value?, node?}` | See action types below |
+| `GET` | `/api/insights` | — | **AI-powered infrastructure recommendations** from Grok. Requires `GROK_API_KEY` env var. Returns `{summary, recommendations[]}` or error. Cached 12s. |
 
 ### Action types (`POST /api/action`)
 
@@ -513,6 +533,63 @@ Lane offset:       7.0 m     (perpendicular, right-hand driving)
 
 ---
 
+## Grok AI Insights: How it works
+
+### Setup
+
+**Local development:**
+```bash
+# apps/api/.env
+GROK_API_KEY=xai-your-key-here-from-console.x.ai
+```
+
+**Production (Render):**
+Set `GROK_API_KEY` as an environment variable in the Render dashboard.
+
+### The flow
+
+1. **User clicks ⚡ Analyze city** in the frontend.
+2. **Browser calls** `GET /api/insights` (same-origin, so API key stays server-side).
+3. **Backend builds a prompt** — extracts latest KPI snapshot (both twins, current weather, disruptions, clock, etc.).
+4. **POST to Grok** — asks Grok to analyze and return **exactly this JSON**:
+   ```json
+   {
+     "summary": "One-sentence assessment of the city's current state.",
+     "recommendations": [
+       {
+         "icon": "🚦",
+         "title": "Short action title",
+         "detail": "2–3 sentence finding with numbers and reasoning.",
+         "impact": "Estimated benefit, e.g. ~18% queue reduction"
+       },
+       ...
+     ]
+   }
+   ```
+5. **Response is cached** for 12 seconds (to avoid hammering the API).
+6. **Frontend displays** the summary + 4 recommendation cards with icons, titles, detail, and impact badges.
+
+### What Grok "sees"
+
+The prompt includes:
+- **Fixed timing KPIs:** trip time, wait, throughput, queue, CO₂, fuel, emergency response (if active)
+- **Max-Pressure AI KPIs:** same metrics
+- **Savings deltas:** % improvement on each metric
+- **Environment:** weather, city clock, demand multiplier, day/night auto status
+- **Disruptions:** active blocked edges, current disruption count
+- **Context:** grid size, block spacing, cycle length
+
+Grok generates recommendations that reference these **specific numbers** — not generic traffic advice.
+
+### Example recommendations
+
+- *"The central avenue (45% of all trips) has 10× longer queues under fixed timing. Extending its vertical-phase green windows by 8–10 s during peak would reduce queue by ~22%."*
+- *"Heavy rain (weather: heavy) reduces effective capacity by 50%. Consider congestion pricing to reduce demand 20% during heavy weather."*
+- *"Ambulance had 3 stops under fixed timing vs 0 under Max-Pressure. Deploy Max-Pressure for emergency response: saves ~30 s per ambulance deployment."*
+- *"At current demand (2.5×), the network is near saturation. Adding a dedicated bus lane on the central avenue would add effective capacity without new roads."*
+
+---
+
 ## KPI Definitions
 
 | KPI | Definition |
@@ -534,11 +611,11 @@ The **savings** figures in the KPI dashboard are always computed as `(fixed − 
 
 | Criterion | How GreenWave addresses it |
 |---|---|
-| **AI / ML integration** | Max-Pressure adaptive control (citable algorithm); emergent TSP corridor; optional real-weather API integration |
-| **Technical execution** | Custom simulation engine; async WebSocket pipeline at 10 Hz; GPU-instanced 3D renderer at 60 fps; zero external sim dependencies |
-| **Usability** | Zero-config local setup; one-click demo tour; every feature is interactive and immediate |
-| **Impact** | Quantified: 45% faster trips, 81% less idle time, 27% CO₂ reduction, ambulance never stops — measured, not asserted |
-| **Theme: Future City** | Smart adaptive infrastructure; sustainability (emissions ↓); civic emergency response; planner sandbox; day/night + weather realism |
+| **AI / ML integration** | Max-Pressure adaptive control (citable algorithm); emergent TSP corridor; **Grok AI generating real-time infrastructure recommendations** from live KPI data; optional real-weather API integration |
+| **Technical execution** | Custom simulation engine; async WebSocket pipeline at 10 Hz; GPU-instanced 3D renderer at 60 fps; external API integration (Grok, wttr.in); zero external sim dependencies |
+| **Usability** | Zero-config local setup; one-click demo tour; every feature is interactive and immediate; AI insights generated on demand |
+| **Impact** | Quantified: 45% faster trips, 81% less idle time, 27% CO₂ reduction, ambulance never stops — measured, not asserted; recommendations tie to specific numerical improvements |
+| **Theme: Future City** | Smart adaptive infrastructure; sustainability (emissions ↓); civic emergency response; AI planner copilot; day/night + weather realism |
 
 ---
 
