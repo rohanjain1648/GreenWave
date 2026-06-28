@@ -20,6 +20,7 @@ export type Kpis = {
   fuelL: number;
   emergencyResponseS: number | null;
   emergencyStops: number | null;
+  emergencyActive: boolean;
 };
 
 // vehicle tuple: [id, x, y, emergency(0|1), stopped(0|1)]

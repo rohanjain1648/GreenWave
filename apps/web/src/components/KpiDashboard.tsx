@@ -88,26 +88,40 @@ export default function KpiDashboard() {
 
       {/* emergency panel */}
       <div className="rounded-xl border border-ink-600 bg-ink-900 p-4">
-        <div className="mb-2 text-[11px] uppercase tracking-wider text-slate-500">
+        <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wider text-slate-500">
           🚑 Emergency response (last dispatched)
+          {(fixed?.emergencyActive || ai?.emergencyActive) && (
+            <span className="flex items-center gap-1 rounded-full bg-yellow-400/15 px-2 py-0.5 text-[10px] font-medium text-yellow-300">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-400" />
+              in transit
+            </span>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="rounded-lg bg-ink-800 p-3">
             <div className="text-xs text-slate-400">Fixed timing</div>
             <div className="font-mono text-lg text-slate-200">
-              {fixed?.emergencyResponseS != null ? `${fixed.emergencyResponseS}s` : "—"}
+              {fixed?.emergencyActive && fixed?.emergencyResponseS == null
+                ? "..."
+                : fixed?.emergencyResponseS != null ? `${fixed.emergencyResponseS}s` : "—"}
             </div>
             <div className="text-xs text-slate-500">
-              {fixed?.emergencyStops != null ? `${fixed.emergencyStops} stops` : "no run yet"}
+              {fixed?.emergencyActive && fixed?.emergencyStops == null
+                ? "en route"
+                : fixed?.emergencyStops != null ? `${fixed.emergencyStops} stops` : "no run yet"}
             </div>
           </div>
           <div className="rounded-lg bg-ink-800 p-3 ring-1 ring-wave/40">
             <div className="text-xs text-wave">GreenWave AI corridor</div>
             <div className="font-mono text-lg text-wave">
-              {ai?.emergencyResponseS != null ? `${ai.emergencyResponseS}s` : "—"}
+              {ai?.emergencyActive && ai?.emergencyResponseS == null
+                ? "..."
+                : ai?.emergencyResponseS != null ? `${ai.emergencyResponseS}s` : "—"}
             </div>
             <div className="text-xs text-slate-500">
-              {ai?.emergencyStops != null ? `${ai.emergencyStops} stops` : "no run yet"}
+              {ai?.emergencyActive && ai?.emergencyStops == null
+                ? "en route"
+                : ai?.emergencyStops != null ? `${ai.emergencyStops} stops` : "no run yet"}
             </div>
           </div>
         </div>

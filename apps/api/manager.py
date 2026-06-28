@@ -235,8 +235,10 @@ class SimManager:
         return {}
 
     def emergency(self) -> dict:
-        o = self.net.nid(0, 0)
-        d = self.net.nid(self.net.rows - 1, self.net.cols - 1)
+        # middle row, left border → right border: 7 edges × 120 m ≈ 15 real-seconds
+        mid = self.net.rows // 2
+        o = self.net.nid(mid, 0)
+        d = self.net.nid(mid, self.net.cols - 1)
         self.fixed.add_trip(o, d, emergency=True)
         self.ai.add_trip(o, d, emergency=True)
         return {"from": o, "to": d}

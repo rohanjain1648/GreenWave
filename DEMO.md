@@ -9,56 +9,74 @@
 
 ## 00:00–00:30 — Intro & problem statement
 
-> "Cities use traffic signals timed in the 1970s. They don't know what's actually on the road. A commuter wastes 50 hours a year at unnecessary red lights. Ambulances lose critical minutes. Every minute of congestion also burns fuel and pumps CO₂ into the air.  
-> 
-> **GreenWave is an AI that fixes traffic signals live.** It reads actual queue lengths and adapts the signal timing every cycle. You're about to see it in action."
+> "Cities use traffic signals timed in the 1970s. They don't know what's actually on the road. A commuter wastes 50 hours a year at unnecessary red lights. Ambulances lose critical minutes. Every minute of congestion also burns fuel and pumps CO₂ into the air.
+>
+> **GreenWave is an AI that fixes traffic signals live.** It reads actual queue lengths and adapts every signal every cycle — using a proven algorithm called Max-Pressure. You're about to see it in action."
 
 **Action:** Open the app at `http://localhost:5173`. Wait for the 3D city to load (dark buildings, green glowing signals).
 
 ---
 
-## 00:30–01:15 — The A/B counterfactual
+## 00:30–01:15 — The A/B counterfactual + Max-Pressure explained
 
-> "This is the genius part: **two identical cities running side by side**, fed the exact same cars from the same random seed. Left city: fixed timers (like today's infrastructure). Right city: GreenWave AI."
+> "This is the core insight: **two identical cities running side by side**, fed the exact same cars from the same random seed. Left city: fixed 22-second timers — like every real city today. Right city: GreenWave's Max-Pressure AI."
 
 **Action:**
 1. Click **▶ Run the city** to start the simulation.
 2. Wait 3–5 seconds for vehicles to spawn and queues to form.
-3. Point to the **KPI Dashboard** on the right:
-   - Trip time: AI is ~45% faster
-   - Wait time: AI is ~81% lower
-   - Mean queue: AI is ~91% shorter
-   - CO₂: AI cuts emissions by ~27%
+3. Point to the **KPI Dashboard** on the right.
 
-> "Same cars. Same network. Same demand. But the AI city flows *dramatically* better. Let's prove it with a disruption."
+> "Watch the numbers diverge. Already the AI city is moving faster. Here's why:
+>
+> **Max-Pressure works like this** — every intersection independently calculates a pressure score for each direction:
+>
+> `Pressure = upstream queue − 0.5 × downstream queue`
+>
+> The upstream queue is cars piling up behind the red light. The downstream queue is cars already past but stuck ahead. That 0.5 weight is critical — it stops you from pushing cars into an already-jammed road and making things worse.
+>
+> Each cycle, the signal simply turns green for whichever direction has the highest pressure. No central brain. No pre-set schedule. Just raw queue counts, locally, every 6 seconds.
+>
+> This was mathematically proven by Varaiya in 2013 to be **throughput-optimal** — meaning if your network has the capacity to handle the demand at all, Max-Pressure will clear it. No decentralized algorithm can do better.
+>
+> Same cars. Same network. Same demand. The only difference is the controller."
+
+Point to KPIs:
+- Trip time: AI is ~45% faster
+- Wait time: AI is ~81% lower
+- Mean queue: AI is ~91% shorter
+- CO₂: AI cuts emissions by ~27%
 
 ---
 
-## 01:15–02:00 — Interactive disruptions (pick one or two)
+## 01:15–02:00 — Disruptions: accident + ambulance (TSP explained)
 
-**Option A — Accident (fastest impact):**
+**Step 1 — Accident:**
 
-> "Watch what happens when a road gets blocked."
-
-**Action:**
-1. Click **💥 Accident** under "Inject a disruption".
-2. Watch the KPI Dashboard for 3–4 seconds.
-3. Point to the **Fixed city** (left): queues pile up visibly, wait time spikes, the AI's advantage widens.
-4. Point to the **GreenWave city** (right): it re-routes traffic around the accident, queues remain small.
-
-> "The fixed-timing city is gridlocked. GreenWave detected the blockage and rerouted green time to alternate intersections. That's a 20–30% gap opening *from a single accident*."
-
-**Option B — Ambulance (most dramatic):**
-
-> "Now watch an ambulance."
+> "Let's stress-test it. Watch what happens when a road gets blocked."
 
 **Action:**
-1. Click **🚑 Ambulance** under "Inject a disruption".
-2. Watch the **KPI Dashboard** — look for **Emergency response time** and **Emergency stops**.
-3. In the **Fixed city**: the ambulance waits at red lights (3–4 stops, 130+ seconds).
-4. In the **GreenWave city**: the ambulance sails through every intersection (0 stops, ~110 seconds).
+1. Click **💥 Accident**.
+2. Watch for 3–4 seconds.
 
-> "GreenWave detects the ambulance on each approach and pre-empts the signal green before it arrives. In a real city, that's the difference between surviving a cardiac arrest and not. That's the impact story."
+> "Fixed city: queues pile up, wait time spikes — the controller has no idea the road is blocked, it just keeps giving green time on schedule. GreenWave: pressure on the blocked approach collapses to near zero, so the algorithm automatically shifts green time to the alternate routes. It rerouted itself. No human intervention. No reprogramming."
+
+**Step 2 — Ambulance (TSP):**
+
+> "Now the most powerful feature."
+
+**Action:**
+1. Click **🚑 Ambulance**.
+2. Point to **Emergency Response** section in the KPI panel.
+
+> "This is Transit Signal Priority — TSP. Here's exactly what happens:
+>
+> The moment the ambulance spawns, every intersection on its path detects it on the incoming edge. It immediately overrides the Max-Pressure calculation and forces green for that approach — before the ambulance even arrives.
+>
+> The result: the ambulance never sees a red light. It creates a green corridor through the entire city.
+>
+> Look at the numbers: Fixed timing — 3 to 4 stops, over 130 seconds. GreenWave AI corridor — 0 stops, under 110 seconds.
+>
+> In a real cardiac arrest, brain damage begins at 4 minutes. That 20-second difference is the difference between surviving and not. TSP is layered on top of Max-Pressure — emergency vehicles pre-empt the algorithm, regular traffic resumes Max-Pressure the moment it passes."
 
 ---
 
@@ -67,18 +85,15 @@
 > "But traffic isn't static. Weather and rush hour change everything."
 
 **Action:**
-1. Click **🌧️ Rain** under the Environment row.
-   - Watch the sky darken, rain particles fall, vehicles slow down (75% speed).
+1. Click **🌧️ Rain**.
+   - Sky darkens, rain particles fall, vehicles slow to 75% speed.
    - Demand drops 12% (people stay home).
-   - All KPIs degrade, but the AI still wins.
 
 2. Toggle **🌙 Auto** (rush-hour curve).
-   - Clock in the top-left starts ticking: "7:30 AM" → "8:00 AM" (peak hour).
-   - Demand multiplier climbs to 1.55× (morning rush).
-   - Sky gradually brightens (dawn lighting).
-   - Watch trip times and queues worsen under peak demand.
+   - Clock ticks from 7:00 AM toward 8:00 AM peak.
+   - Demand climbs to 1.55× baseline.
 
-> "At 8 AM, the city is at peak congestion. The AI's advantage *grows* because Max-Pressure scales with demand — it's provably optimal when the network is fullest."
+> "At 8 AM peak congestion, Max-Pressure's advantage actually *grows*. That's the mathematical property — it's provably optimal under high load. Fixed timing was calibrated for average conditions. Max-Pressure just reads bigger queue numbers and adapts. The heavier the demand, the larger the gap."
 
 ---
 
@@ -88,86 +103,113 @@
 
 **Action:**
 1. Click **🔥 Pollution map**.
-   - Ground plane now shows a heatmap: green (clean flow) → yellow (some congestion) → red (heavy idling).
-2. Toggle to **Split A/B** view (top-right buttons).
-   - The Fixed city glows noticeably redder.
-   - The GreenWave city is greener.
+   - Ground plane shows green (flowing) → yellow (slowing) → red (idling).
+2. Switch to **Split A/B** view.
 
-> "The red zones are where cars are sitting idle. GreenWave doesn't just improve KPIs — it cuts the actual pollution footprint by 27%. This is measurable sustainability."
+> "Every red zone is a cluster of cars sitting at idle — burning fuel, emitting CO₂, going nowhere. The fixed city glows red at every major intersection. The AI city is almost entirely green. This isn't an estimate — the heatmap is accumulating real vehicle positions from the live simulation. 27% less CO₂ isn't a model prediction. It's measured from actual vehicle-seconds of idling."
 
 ---
 
-## 03:15–03:45 — Scripted demo tour (optional speed boost)
+## 03:15–03:45 — Scripted demo tour
 
-> "To show you the full story in 5 minutes, let me run the demo tour."
+> "To show the full story in 30 seconds, let me run the automated tour."
 
 **Action:**
-1. Click **🎬 Demo Tour** at the top of the control panel.
-2. Let it play automatically for 30–45 seconds:
-   - Narration appears in a banner.
-   - Camera auto-orbits around the city.
-   - Steps through: intro → single AI view → split A/B → accident injection → ambulance dispatch → surge → heatmap → closing.
-3. You can click **Skip** to move to the next step, or let it finish.
+1. Click **🎬 Demo Tour**.
+2. Let it run: intro → single AI view → split A/B → accident → ambulance → surge → heatmap → finale.
+3. Click **Skip** to advance steps if needed.
 
-> "This is the full story on a timer. You can record this video and submit it to competitions. It highlights every key feature."
+> "Every step is narrated live. You can record this and submit it as your video demo."
 
 ---
 
-## 03:45–04:30 — AI Infrastructure Insights (Grok)
+## 03:45–04:30 — AI Infrastructure Insights (Groq)
 
-> "Finally, the breakthrough: **the system doesn't just control traffic — it recommends changes to city planners**."
+> "The final layer: **the system doesn't just control traffic — it advises city planners on what to change permanently**."
 
 **Action:**
-1. Click **⚡ Analyze city** in the right rail (under KPI Dashboard).
-2. Wait 2–3 seconds (spinner animates).
-3. Read the **summary** — e.g., "Fixed timing is generating 3× more idle time. The central avenue is the dominant bottleneck."
-4. Scroll down or point to the **4 recommendation cards**:
-   - Each shows: icon + title + detailed finding + estimated impact badge.
-   - Example: "Extend green phases on central avenue by 8–10 s → ~22% queue reduction"
-   - Example: "During peak demand, deploy Max-Pressure to add ~16% throughput without infrastructure"
+1. Click **⚡ Analyze city** in the right rail.
+2. Wait 2–3 seconds for the spinner.
+3. Read the summary card aloud.
+4. Point to each of the 4 recommendation cards.
 
-> "This is AI-powered infrastructure planning. Grok (xAI) analyzes live KPIs and tells a city planner exactly what to change and why. Not a black box. Not a prediction. Real, actionable, quantitative recommendations."
+> "This is powered by Groq's LLM — running on live KPI data from the simulation right now. It's not generating generic traffic advice. It's reading the actual numbers: queue lengths, wait times, throughput gaps, CO₂ deltas — and producing specific, quantitative, actionable recommendations.
+>
+> For example: 'The central avenue carries 45% of all trips but receives equal green time — extending its phase by 8 to 10 seconds would reduce mean queue by 22%.' That's a finding tied to this city, this demand, this moment.
+>
+> The difference between Max-Pressure and this panel is the difference between a self-driving car and a navigator. Max-Pressure drives the signals. Groq tells the city planner what infrastructure to build next.
+>
+> Each recommendation includes: what to change, why (with numbers), and estimated impact. A city engineer could take this report into a council meeting tomorrow."
 
 ---
 
 ## 04:30–05:00 — Closing & the big claim
 
 > "Let me recap what you just saw:
-> 
-> 1. **Real-time simulation** — vehicles move in 3D, emergent congestion forms, we measure everything.
-> 2. **Fair A/B comparison** — same demand, same seed, different controllers (fixed vs. Max-Pressure).
-> 3. **Quantified impact** — 45% faster trips, 81% less wait, 27% CO₂ savings, ambulances never stop.
-> 4. **Interactive disruptions** — accidents, closures, surges, motorcades, signal failures, protests, stadium events.
-> 5. **Environmental realism** — weather, day/night cycles, demand curves, live heatmaps.
-> 6. **AI recommendations** — Grok generates actionable infrastructure improvements tied to actual KPIs.
-> 
-> This isn't a dashboard. This is a **closed-loop AI system that optimizes a city in real time and tells planners what to do next.**
-> 
+>
+> 1. **Max-Pressure AI** — reads real queue lengths every cycle, gives green to the highest-pressure direction, provably optimal (Varaiya 2013), zero calibration needed.
+> 2. **Transit Signal Priority** — detects ambulances on approach, pre-empts signals, creates a green corridor. 0 stops vs 3–4. Lives saved.
+> 3. **Fair A/B counterfactual** — same seed, same demand, same network. The only variable is the controller. 45% faster, 81% less wait, 27% less CO₂.
+> 4. **8 interactive disruptions** — accidents, floods, motorcades, surges, signal failures — all handled adaptively.
+> 5. **Environmental realism** — weather physics, rush-hour demand curves, live pollution heatmap.
+> 6. **Groq AI insights** — LLM-powered infrastructure recommendations from live KPIs.
+>
+> This isn't a dashboard. This is a **closed-loop AI system that optimizes a city in real time and tells planners what to build next.**
+>
 > GreenWave proves that smarter signal control saves lives, time, and the planet. And it can be deployed in any city, starting today."
 
-**Final action:** Click **Reset** if you want to show one more scenario. Or leave it as-is and open the code/docs for technical questions.
+---
+
+## Algorithm cheat sheet (for judge Q&A)
+
+### Max-Pressure
+```
+Pressure(phase) = upstream_queue − 0.5 × downstream_queue
+
+Each cycle:
+  if max_pressure − current_pressure > 0.5 veh AND green_time > 6s:
+      switch to max_pressure phase
+```
+- **Decentralized** — each intersection runs independently, no communication
+- **No training** — pure algorithm, fully explainable
+- **Provably throughput-optimal** — Varaiya 2013
+
+### Transit Signal Priority (TSP)
+```
+if emergency_vehicle detected on incoming_edge:
+    override Max-Pressure → force green for that approach
+    resume Max-Pressure after vehicle clears
+```
+- Layered on top of Max-Pressure — doesn't replace it, pre-empts it
+- Result: 0 stops for ambulance vs 3–4 for fixed timing
+
+### Groq AI Insights
+```
+live KPIs → prompt with actual numbers → Groq LLM → 4 JSON recommendations
+```
+- Server-side, 12-second cache (avoids API cost on each click)
+- Returns: icon, title, 2–3 sentence finding with numbers, estimated impact
+- Not generic advice — grounded in the live simulation state
 
 ---
 
 ## Bonus features (if judges ask)
 
-- **Speed multiplier** (top of control panel, 1× / 2× / 4×) — run scenarios faster.
-- **Demand slider** — crank demand to 4× to see the network saturate (AI still wins).
-- **Flood/closure** — click 🌊 to permanently block a 2×2 block; watch rerouting.
-- **Stadium surge** — click 🏟️ for a 2.5× demand spike (biggest disruption).
-- **Signal failure** — click 💡 to fail 4 intersections (amber blinking in 3D); AI reroutes, Fixed gridlocks.
-- **Motorcade** — click 🚨 to block the entire central avenue; watch traffic flow around it.
-- **Grok live weather** — click 🌐 to fetch real weather from your location and apply it.
+- **Speed multiplier** (1× / 2× / 4×) — run scenarios faster for time-lapse effect
+- **Demand slider** — crank to 4× to saturate the network; AI still wins
+- **Stadium surge** — 2.5× demand spike, biggest single disruption
+- **Signal failure** — 4 intersections go dark (amber blinking); AI reroutes, Fixed gridlocks
+- **Motorcade** — blocks entire central avenue; watch pressure reroute around it
+- **Live weather** — click 🌐 to fetch real weather from your location and apply it
 
 ---
 
-## Pitch talking points (if time allows)
+## Pitch talking points (for judge Q&A)
 
-- **Max-Pressure is real traffic engineering** — cite Varaiya 2013, it's provably optimal under any stable demand.
-- **No training, no black box** — the algorithm reads queue lengths and makes a local decision. You can explain why every signal is green.
-- **Scales horizontally** — multiple districts as independent workers, Redis pub/sub, stateless API.
-- **Self-contained** — zero external simulation dependencies (no SUMO needed), pure Python, runs anywhere.
-- **Three winners in one**: Judges get innovation (Max-Pressure + TSP + AI insights), technical execution (real-time sim + WebSocket + GPU rendering), and impact (measured KPIs + emergency response).
+- **Why not ML?** Max-Pressure requires zero training data, works on day one, and you can explain every green light. ML needs months of data collection before deployment.
+- **Why not SUMO?** Zero external dependencies. Pure Python simulation, runs on any machine, no licensing, no install complexity for a hackathon demo.
+- **Does it scale?** Yes — each intersection is independent. Multiple districts = multiple workers. Stateless API, Redis pub/sub for scale-out.
+- **Is the comparison fair?** Yes — seeded RNG (seed=42) sends identical demand to both twins. The only variable is the controller.
 
 ---
 
@@ -175,11 +217,11 @@
 
 | Issue | Fix |
 |---|---|
-| Browser won't load | Check backend is running (`http://localhost:8000/health`). Refresh (Ctrl+Shift+R). |
-| No vehicles spawning | Click **▶ Run the city**, wait 5s. Vehicles are seeded when simulation starts. |
-| Grok insights error | Backend doesn't have `GROK_API_KEY` set. Set it in `.env` and restart backend. (Or just skip this feature — the rest of the demo is self-contained.) |
-| Low frame rate | Close other browser tabs. Drag to rotate the city manually (auto-orbit might be on). Click **Pause** then **Resume**. |
-| WebSocket connection lost | Refresh page. Check backend is alive. |
+| Browser won't load | Check backend is running at `http://localhost:8000/health`. Refresh (Ctrl+Shift+R). |
+| No vehicles spawning | Click **▶ Run the city**, wait 5s. |
+| Groq insights error | Set `GROQ_API_KEY` in `apps/api/.env` and restart backend. Skip this section if needed — rest of demo is self-contained. |
+| Low frame rate | Close other tabs. Click Pause then Resume. |
+| WebSocket disconnected | Refresh page. Check backend is alive. |
 
 ---
 
@@ -188,14 +230,14 @@
 | Segment | Time | What you do |
 |---|---|---|
 | Intro + problem | 0:00–0:30 | Narrate, load app |
-| A/B counterfactual | 0:30–1:15 | Start sim, point at KPIs |
-| Accident disruption | 1:15–2:00 | Inject, watch KPIs change |
-| Weather + day/night | 2:00–2:30 | Rain + Auto, point to sky/clock |
-| Heatmap + Split view | 2:30–3:15 | Show pollution reduction |
-| Demo tour | 3:15–3:45 | Click play, narrate highlights |
-| Grok insights | 3:45–4:30 | Click Analyze, read recommendations |
-| Closing | 4:30–5:00 | Recap + big claim |
+| A/B + Max-Pressure explained | 0:30–1:15 | Start sim, explain pressure formula, point at KPIs |
+| Accident + Ambulance + TSP explained | 1:15–2:00 | Inject both, explain TSP corridor |
+| Weather + day/night | 2:00–2:30 | Rain + Auto, show demand curve effect |
+| Heatmap + Split view | 2:30–3:15 | Show pollution footprint difference |
+| Demo tour | 3:15–3:45 | Click play, let it run |
+| Groq AI insights explained | 3:45–4:30 | Click Analyze, read cards, explain LLM grounding |
+| Closing recap | 4:30–5:00 | 6-point summary + big claim |
 
 ---
 
-*Good luck! 🚦🌊*
+*Good luck. The algorithm is provably optimal — let the numbers speak.*

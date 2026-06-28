@@ -123,8 +123,7 @@ class Simulation:
         self.pending.append(veh)
         if emergency:
             self.emergency_active_id = vid
-            self.emergency_response_s = None
-            self.emergency_stops = None
+            # keep last completed result visible while new one is in transit
         return vid
 
     def _admit_pending(self) -> None:
@@ -345,6 +344,7 @@ class Simulation:
                 else None
             ),
             "emergencyStops": self.emergency_stops,
+            "emergencyActive": self.emergency_active_id is not None,
         }
 
     def _world_pos(self, veh: Vehicle) -> tuple[float, float]:
