@@ -75,7 +75,7 @@ class SimManager:
                         # 1 sim-tick = 1 city-minute (so a full day cycles in ~2.4 min at speed 1)
                         self.sim_clock = (self.sim_clock + TICK_DT) % 1440.0
                         self.tick += 1
-                    await self._broadcast()
+                await self._broadcast()
             except Exception as exc:  # keep the loop alive in a demo
                 print("sim loop error:", exc)
             await asyncio.sleep(LOOP_INTERVAL)
